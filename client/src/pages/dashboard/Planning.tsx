@@ -5,7 +5,7 @@ import { Loader, X } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Session } from '../../types';
 import toast from 'react-hot-toast';
-import { getMySessions, unregisterFromSession } from '../../api/sessionApi';
+import { getMySessions, unregisterFromSession } from './sessionApi';
 import PullToRefresh from 'react-pull-to-refresh';
 
 export function Planning() {

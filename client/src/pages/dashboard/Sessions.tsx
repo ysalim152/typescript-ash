@@ -5,8 +5,8 @@ import { Loader } from 'lucide-react';
 import { Session } from '../../types';
 import toast from 'react-hot-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getAvailableSessions, registerForSession } from '../../api/sessionApi';
-import { HttpError } from '../../api/HttpError';
+import { getAvailableSessions, registerForSession } from './sessionApi';
+import { HttpError } from './HttpError';
 
 export function Sessions() {
   const { token } = useAuth();
@@ -14,8 +14,8 @@ export function Sessions() {
 
   const { data: sessions, isLoading } = useQuery({
     queryKey: ['sessions'], // Note: This fetches all sessions, not just available ones based on the old code.
-    queryFn: () => getAvailableSessions(),
-
+    queryFn: () => getAvailableSessions(token),
+    enabled: !!token, // La requête ne se lancera que si le token existe
   });
 
   const { mutate: handleRegister, isPending: isRegistering, variables: registeringId } = useMutation<
