@@ -1,5 +1,5 @@
 import { Session } from '../types';
-import { HttpError } from '../../api/HttpError';
+import { HttpError } from './HttpError';
 
 /**
  * Fetches all available sessions.
@@ -16,7 +16,7 @@ export const getAvailableSessions = async (): Promise<Session[]> => {
  * Fetches the sessions for the currently authenticated user.
  */
 export const getMySessions = async (token: string): Promise<Session[]> => {
-  const response = await fetch('/api/sessions/mine', {
+  const response = await fetch('/api/sessions', {
     headers: { 'x-auth-token': token },
   });
   if (!response.ok) {

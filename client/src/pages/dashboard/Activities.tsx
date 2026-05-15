@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Loader, Plus, Trash2, Pencil } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getActivities, createActivity, deleteActivity, updateActivity, Activity, NewActivityData } from './activityApi';
+import { getActivities, createActivity, deleteActivity, updateActivity, Activity, NewActivityData } from '../../api/activityApi';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { ConfirmationDialog } from '../../components/ui/ConfirmationDialog';

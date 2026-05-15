@@ -2,12 +2,11 @@ import { useAuth } from '../../hooks/useAuth';
 import { Card } from '../../components/ui/card';
 import { Loader, ArrowUpDown, Download, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMembers, getAllMembers, updateMemberRole, deleteMember, Member, PaginatedMembersResponse } from './memberApi';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { ConfirmationDialog } from '../../components/ui/ConfirmationDialog';
-import Papa from 'papaparse'; // npm install papaparse @types/papaparse
+import Papa from 'papaparse';
 import toast from 'react-hot-toast';
 
 type SortConfig = {
@@ -16,6 +15,25 @@ type SortConfig = {
 };
 
 const ROLES = ['member', 'coach', 'admin'];
+
+const ConfirmationDialog = ({ title, message, onConfirm, onCancel, isPending }: { title: string, message: string, onConfirm: () => void, onCancel: () => void, isPending: boolean }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <Card className="p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold mb-4">{title}</h2>
+        <p className="text-gray-600 mb-6">{message}</p>
+        <div className="flex justify-end gap-4">
+          <Button variant="outline" onClick={onCancel} disabled={isPending}>
+            Annuler
+          </Button>
+          <Button variant="destructive" onClick={onConfirm} disabled={isPending}>
+            {isPending ? 'Suppression...' : 'Confirmer'}
+          </Button>
+        </div>
+      </Card>
+    </div>
+  );
+};
 
 export function Members() {
   const { user: currentUser, token } = useAuth();
@@ -42,14 +60,11 @@ export function Members() {
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['members', page, debouncedSearchTerm, sortConfig],
     queryFn: () => {
-      if (!token) {
-        // Retourner une structure de données cohérente
-        return Promise.resolve({ members: [], totalPages: 0, currentPage: 1 });
-      }
+      if (!token) return Promise.resolve([]);
       return getMembers(token, page, 10, debouncedSearchTerm, sortConfig.key, sortConfig.direction);
     },
     enabled: !!token,
-    placeholderData: keepPreviousData,
+    keepPreviousData: true, // Garde les données précédentes affichées pendant le chargement des nouvelles
   });
 
   const members = data?.members;
@@ -118,9 +133,6 @@ export function Members() {
       }
       toast.error("Échec de la suppression du membre.");
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['members'] });
-    }
   });
 
   const handleSort = (key: SortConfig['key']) => {
@@ -241,7 +253,7 @@ export function Members() {
                       <select
                         value={member.role}
                         onChange={(e) => handleRoleChange({ memberId: member.id, role: e.target.value })}
-                        disabled={(isUpdatingRole && updatingRoleVars?.memberId === member.id) || member.id === currentUser?.id}
+                        disabled={isUpdatingRole && updatingRoleVars?.memberId === member.id || member.id === currentUser?.id}
                         className="capitalize bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm border-transparent focus:border-blue-500 focus:ring-0"
                       >
                         {ROLES.map(role => (

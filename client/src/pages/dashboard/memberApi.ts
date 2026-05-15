@@ -1,4 +1,4 @@
-import { HttpError } from "./HttpError";
+import { HttpError } from "../../api/HttpError";
 export interface Member {
   id: number;
   email: string;
