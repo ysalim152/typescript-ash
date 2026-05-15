@@ -2,7 +2,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { Card } from '../../components/ui/card';
 import { Loader, ArrowUpDown, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { getAuditLogs } from '../../api/auditLogApi';
 import { Button } from '../../components/ui/button';
 
@@ -26,7 +26,7 @@ export function AuditLog() {
       return getAuditLogs(token, page, 15, sortConfig.key, sortConfig.direction);
     },
     enabled: !!token,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
   const logs = data?.logs;

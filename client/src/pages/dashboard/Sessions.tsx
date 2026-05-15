@@ -14,8 +14,8 @@ export function Sessions() {
 
   const { data: sessions, isLoading } = useQuery({
     queryKey: ['sessions'], // Note: This fetches all sessions, not just available ones based on the old code.
-    queryFn: () => getAvailableSessions(token),
-    enabled: !!token, // La requête ne se lancera que si le token existe
+    queryFn: () => getAvailableSessions(),
+
   });
 
   const { mutate: handleRegister, isPending: isRegistering, variables: registeringId } = useMutation<

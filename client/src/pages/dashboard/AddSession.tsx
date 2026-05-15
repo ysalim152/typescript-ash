@@ -6,8 +6,8 @@ import { Card } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createSession, NewSessionData } from './sessionApi';
-import { getActivities, Activity } from './activityApi';
+import { createSession, NewSessionData } from '../../api/sessionApi';
+import { getActivities } from '../../api/activityApi';
 import toast from 'react-hot-toast';
 
 export function AddSession() {

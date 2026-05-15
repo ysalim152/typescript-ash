@@ -2,12 +2,12 @@ import { useAuth } from '../../hooks/useAuth';
 import { Card } from '../../components/ui/card';
 import { Loader, ArrowUpDown, Download, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { getMembers, getAllMembers, updateMemberRole, deleteMember, Member, PaginatedMembersResponse } from './memberApi';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { ConfirmationDialog } from '../../components/ui/ConfirmationDialog';
-import Papa from 'papaparse';
+import Papa from 'papaparse'; // npm install papaparse @types/papaparse
 import toast from 'react-hot-toast';
 
 type SortConfig = {
@@ -49,7 +49,7 @@ export function Members() {
       return getMembers(token, page, 10, debouncedSearchTerm, sortConfig.key, sortConfig.direction);
     },
     enabled: !!token,
-    keepPreviousData: true, // Garde les données précédentes affichées pendant le chargement des nouvelles
+    placeholderData: keepPreviousData,
   });
 
   const members = data?.members;
@@ -241,7 +241,7 @@ export function Members() {
                       <select
                         value={member.role}
                         onChange={(e) => handleRoleChange({ memberId: member.id, role: e.target.value })}
-                        disabled={isUpdatingRole && updatingRoleVars?.memberId === member.id || member.id === currentUser?.id}
+                        disabled={(isUpdatingRole && updatingRoleVars?.memberId === member.id) || member.id === currentUser?.id}
                         className="capitalize bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm border-transparent focus:border-blue-500 focus:ring-0"
                       >
                         {ROLES.map(role => (

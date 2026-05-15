@@ -5,8 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
 import { AddSession } from './AddSession';
-import { getActivities } from './activityApi';
-import { createSession } from './sessionApi';
+import { getActivities } from '../../api/activityApi';
+import { createSession } from '../../api/sessionApi';
 
 // --- Mocks ---
 // On simule les modules externes pour isoler notre composant
@@ -18,8 +18,8 @@ vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => ({ token: 'fake-token' }),
 }));
 
-vi.mock('./activityApi');
-vi.mock('./sessionApi');
+vi.mock('../../api/activityApi');
+vi.mock('../../api/sessionApi');
 vi.mock('react-hot-toast');
 
 // --- Test Setup ---
