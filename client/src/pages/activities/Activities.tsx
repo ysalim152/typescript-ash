@@ -3,19 +3,7 @@ import { Card } from '../../components/ui/card';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
 import { Loader } from 'lucide-react';
-
-interface Session {
-  id: number;
-  title: string;
-  description: string | null;
-  session_date: string;
-  duration_minutes: number | null;
-  location: string | null;
-  max_participants: number | null;
-  activity_name: string;
-  activity_id: number;
-  participant_count: number;
-}
+import { Session } from '../../types';
 
 export function Activities() {
   const { data: sessions, loading, error } = useFetch<Session[]>('/api/sessions');

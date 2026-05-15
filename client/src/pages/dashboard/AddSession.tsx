@@ -1,21 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { useFetch } from '../../hooks/useFetch';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-
-interface Activity {
-  id: number;
-  name: string;
-}
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createSession, NewSessionData } from './sessionApi';
+import { getActivities, Activity } from '../../api/activityApi';
+import toast from 'react-hot-toast';
 
 export function AddSession() {
   const { token } = useAuth();
-  const navigate = useNavigate();
-  const { data: activities } = useFetch<Activity[]>('/api/activities', token);
+  const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
     activityId: '',
@@ -26,8 +23,30 @@ export function AddSession() {
     location: '',
     maxParticipants: ''
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  const { data: activities, isLoading: isLoadingActivities } = useQuery({
+    queryKey: ['activities'],
+    queryFn: () => {
+      if (!token) return Promise.resolve([]);
+      return getActivities(token);
+    },
+    enabled: !!token,
+  });
+
+  const { mutate: handleCreateSession, isPending } = useMutation({
+    mutationFn: (sessionData: NewSessionData) => {
+      if (!token) throw new Error('Authentication token is missing.');
+      return createSession({ sessionData, token });
+    },
+    onSuccess: () => {
+      toast.success('Session created successfully!');
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      navigate('/dashboard/planning');
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -36,56 +55,24 @@ export function AddSession() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
 
-    if (!token) {
-      setError('Not authenticated');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/sessions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token
-        },
-        body: JSON.stringify({
-          activityId: Number(formData.activityId),
-          title: formData.title,
-          description: formData.description,
-          sessionDate: formData.sessionDate,
-          durationMinutes: formData.durationMinutes ? Number(formData.durationMinutes) : null,
-          location: formData.location,
-          maxParticipants: formData.maxParticipants ? Number(formData.maxParticipants) : null
-        })
-      });
-
-      if (response.ok) {
-        navigate('/dashboard/planning');
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to create session');
-      }
-    } catch (err) {
-      setError('An error occurred');
-    } finally {
-      setLoading(false);
-    }
+    const sessionData: NewSessionData = {
+      activityId: Number(formData.activityId),
+      title: formData.title,
+      description: formData.description,
+      sessionDate: new Date(formData.sessionDate).toISOString(),
+      durationMinutes: formData.durationMinutes ? Number(formData.durationMinutes) : null,
+      location: formData.location,
+      maxParticipants: formData.maxParticipants ? Number(formData.maxParticipants) : null,
+    };
+    
+    handleCreateSession(sessionData);
   };
 
   return (
     <div className="max-w-2xl mx-auto">
       <Card className="p-8">
         <h1 className="text-2xl font-bold mb-6">Create New Session</h1>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -99,7 +86,7 @@ export function AddSession() {
               required
             >
               <option value="">Select an activity</option>
-              {activities?.map(activity => (
+              {isLoadingActivities ? <option>Loading...</option> : activities?.map(activity => (
                 <option key={activity.id} value={activity.id}>{activity.name}</option>
               ))}
             </select>
@@ -174,8 +161,8 @@ export function AddSession() {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Creating...' : 'Create Session'}
+          <Button type="submit" className="w-full" disabled={isPending}>
+            {isPending ? 'Creating...' : 'Create Session'}
           </Button>
         </form>
       </Card>

@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Link } from 'react-router-dom';
-import { Calendar, Users, Zap, Settings } from 'lucide-react';
+import { Calendar, Users, Zap, Settings, History } from 'lucide-react';
 
 export function Dashboard() {
   const { user } = useAuth();
@@ -81,6 +81,13 @@ export function Dashboard() {
                 <Button variant="outline" className="w-full justify-start">
                   <Zap className="mr-2 w-4 h-4" />
                   Gérer les activités
+                </Button>
+              </Link>
+
+              <Link to="/dashboard/audit-log">
+                <Button variant="outline" className="w-full justify-start">
+                  <History className="mr-2 w-4 h-4" />
+                  Journal d'audit
                 </Button>
               </Link>
 

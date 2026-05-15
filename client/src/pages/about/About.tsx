@@ -1,4 +1,5 @@
 import { Card } from '../../components/ui/card';
+import { Check } from 'lucide-react';
 
 export function About() {
   return (
@@ -39,23 +40,23 @@ export function About() {
         <h2 className="text-2xl font-bold">Pourquoi choisir ASHoura?</h2>
         <ul className="space-y-3 text-gray-600">
           <li className="flex items-start space-x-3">
-            <span className="text-blue-600 font-bold mt-1">✓</span>
+            <Check className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
             <span>Coachs professionnels et certifiés</span>
           </li>
           <li className="flex items-start space-x-3">
-            <span className="text-blue-600 font-bold mt-1">✓</span>
+            <Check className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
             <span>Grande variété d'activités sportives</span>
           </li>
           <li className="flex items-start space-x-3">
-            <span className="text-blue-600 font-bold mt-1">✓</span>
+            <Check className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
             <span>Options d'horaires flexibles</span>
           </li>
           <li className="flex items-start space-x-3">
-            <span className="text-blue-600 font-bold mt-1">✓</span>
+            <Check className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
             <span>Communauté solidaire et accueillante</span>
           </li>
           <li className="flex items-start space-x-3">
-            <span className="text-blue-600 font-bold mt-1">✓</span>
+            <Check className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
             <span>Options d'adhésion abordables</span>
           </li>
         </ul>

@@ -4,6 +4,7 @@ import { Button } from '../components/ui/button';
 import { useAuth } from '../hooks/useAuth';
 import { LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import { Toaster } from 'react-hot-toast';
 
 interface LayoutProps {
   children: ReactNode;
@@ -19,8 +20,14 @@ export function Layout({ children }: LayoutProps) {
     navigate('/');
   };
 
+  const handleNavClick = (path: string) => {
+    navigate(path);
+    setMenuOpen(false);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <Toaster position="top-center" reverseOrder={false} />
       <nav className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -39,7 +46,7 @@ export function Layout({ children }: LayoutProps) {
             </button>
 
             <div className={`${menuOpen ? 'block' : 'hidden'} md:flex md:items-center md:space-x-6 absolute md:relative top-16 md:top-0 left-0 right-0 md:left-auto md:right-auto bg-white md:bg-transparent`}>
-              <nav className="flex flex-col md:flex-row md:space-x-6 p-4 md:p-0">
+              <nav className="flex flex-col md:flex-row md:space-x-6 p-4 md:p-0" onClick={(e) => e.target.tagName === 'A' && setMenuOpen(false)}>
                 <Link to="/" className="text-gray-600 hover:text-gray-900 py-2 md:py-0">Accueil</Link>
                 <Link to="/about" className="text-gray-600 hover:text-gray-900 py-2 md:py-0">À propos</Link>
                 <Link to="/activities" className="text-gray-600 hover:text-gray-900 py-2 md:py-0">Activités</Link>

@@ -1,48 +1,79 @@
-import { useFetch } from '../../hooks/useFetch';
 import { useAuth } from '../../hooks/useAuth';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Loader } from 'lucide-react';
-import { useState } from 'react';
-
-interface Session {
-  id: number;
-  title: string;
-  description: string | null;
-  session_date: string;
-  duration_minutes: number | null;
-  location: string | null;
-  activity_name: string;
-  participant_count: number;
-  max_participants: number | null;
-}
+import { Session } from '../../types';
+import toast from 'react-hot-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getAvailableSessions, registerForSession } from '../../api/sessionApi';
+import { HttpError } from '../../api/HttpError';
 
 export function Sessions() {
   const { token } = useAuth();
-  const { data: sessions, loading, refetch } = useFetch<Session[]>('/api/sessions', token);
-  const [registeringId, setRegisteringId] = useState<number | null>(null);
+  const queryClient = useQueryClient();
 
-  const handleRegister = async (sessionId: number) => {
-    if (!token) return;
-    setRegisteringId(sessionId);
+  const { data: sessions, isLoading } = useQuery({
+    queryKey: ['sessions'], // Note: This fetches all sessions, not just available ones based on the old code.
+    queryFn: () => getAvailableSessions(token),
+    enabled: !!token, // La requête ne se lancera que si le token existe
+  });
 
-    try {
-      const response = await fetch(`/api/sessions/${sessionId}/register`, {
-        method: 'POST',
-        headers: { 'x-auth-token': token }
+  const { mutate: handleRegister, isPending: isRegistering, variables: registeringId } = useMutation<
+    void, // Type de retour de la mutationFn
+    Error, // Type de l'erreur
+    number, // Type des variables passées à la mutationFn (sessionId)
+    { previousSessions: Session[] | undefined } // Type du contexte pour onMutate
+  >({
+    mutationFn: (sessionId: number) => {
+      if (!token) throw new Error('Authentication token is missing.');
+      return registerForSession({ sessionId, token });
+    },
+    // Quand la mutation est appelée :
+    onMutate: async (sessionId: number) => {
+      // 1. Annuler les requêtes en cours pour éviter qu'elles n'écrasent notre mise à jour optimiste
+      await queryClient.cancelQueries({ queryKey: ['sessions'] });
+
+      // 2. Sauvegarder l'état précédent
+      const previousSessions = queryClient.getQueryData<Session[]>(['sessions']);
+
+      // 3. Mettre à jour l'UI de manière optimiste
+      queryClient.setQueryData<Session[]>(['sessions'], (oldData) => {
+        if (!oldData) return [];
+        return oldData.map(session =>
+          session.id === sessionId
+            ? { ...session, participant_count: session.participant_count + 1 }
+            : session
+        );
       });
 
-      if (response.ok) {
-        refetch();
+      // 4. Retourner le contexte avec l'état précédent
+      return { previousSessions };
+    },
+    // Si la mutation échoue, restaurer l'état précédent
+    onError: (err, variables, context) => {
+      if (context?.previousSessions) {
+        queryClient.setQueryData(['sessions'], context.previousSessions);
       }
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setRegisteringId(null);
-    }
-  };
 
-  if (loading) {
+      if (err instanceof HttpError) {
+        if (err.status === 409) { // Conflit : l'utilisateur est déjà inscrit
+          toast.error("Vous êtes déjà inscrit à cette session.");
+        } else {
+          toast.error(err.message || "Une erreur est survenue lors de l'inscription.");
+        }
+      } else {
+        // Erreur générique
+        toast.error("Une erreur inattendue est survenue.");
+      }
+    },
+    // Toujours refaire un fetch à la fin pour s'assurer de la cohérence des données
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      toast.success('Successfully registered for the session!');
+    }
+  });
+
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader className="animate-spin" />
@@ -101,9 +132,9 @@ export function Sessions() {
 
                 <Button
                   onClick={() => handleRegister(session.id)}
-                  disabled={isFull || registeringId === session.id}
+                  disabled={isFull || (isRegistering && registeringId === session.id)}
                 >
-                  {registeringId === session.id ? 'Registering...' : isFull ? 'Session Full' : 'Enregistrer'}
+                  {isRegistering && registeringId === session.id ? 'Registering...' : isFull ? 'Session Full' : 'Enregistrer'}
                 </Button>
               </Card>
             );
