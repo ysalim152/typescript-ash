@@ -1,6 +1,6 @@
 import { useAuth } from '../../hooks/useAuth';
 import { Card } from '../../components/ui/card';
-import { Loader, ArrowUpDown } from 'lucide-react';
+import { Loader, ArrowUpDown, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getAuditLogs } from '../../api/auditLogApi';
@@ -16,10 +16,13 @@ export function AuditLog() {
   const [page, setPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'created_at', direction: 'desc' });
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isFetching } = useQuery({
     queryKey: ['audit-logs', page, sortConfig],
     queryFn: () => {
-      if (!token) return Promise.resolve(null);
+      if (!token) {
+        // Retourner une structure de données cohérente
+        return Promise.resolve({ logs: [], totalPages: 0, currentPage: 1 });
+      }
       return getAuditLogs(token, page, 15, sortConfig.key, sortConfig.direction);
     },
     enabled: !!token,
@@ -51,7 +54,12 @@ export function AuditLog() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Journal d'audit</h1>
+      <div className="flex items-center gap-4">
+        <h1 className="text-3xl font-bold">Journal d'audit</h1>
+        {isFetching && (
+          <RefreshCw size={18} className="animate-spin text-gray-500" />
+        )}
+      </div>
       <Card>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -64,16 +72,24 @@ export function AuditLog() {
               </tr>
             </thead>
             <tbody>
-              {logs?.map((log) => (
-                <tr key={log.id} className="border-b hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-600">{new Date(log.created_at).toLocaleString()}</td>
-                  <td className="px-6 py-4">{log.user_name}</td>
-                  <td className="px-6 py-4">
-                    <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-mono">{log.action_type}</span>
+              {logs && logs.length > 0 ? (
+                logs.map((log) => (
+                  <tr key={log.id} className="border-b hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm text-gray-600">{new Date(log.created_at).toLocaleString()}</td>
+                    <td className="px-6 py-4">{log.user_name}</td>
+                    <td className="px-6 py-4">
+                      <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-mono">{log.action_type}</span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{log.target_descriptor}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="text-center p-8 text-gray-500">
+                    Aucun journal d'audit trouvé.
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{log.target_descriptor}</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
           <div className="flex items-center justify-between p-4 border-t">

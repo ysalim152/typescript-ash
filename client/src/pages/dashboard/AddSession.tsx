@@ -13,6 +13,7 @@ import toast from 'react-hot-toast';
 export function AddSession() {
   const { token } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     activityId: '',

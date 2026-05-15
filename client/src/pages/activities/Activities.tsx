@@ -1,14 +1,15 @@
-import { useFetch } from '../../hooks/useFetch';
 import { Card } from '../../components/ui/card';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
 import { Loader } from 'lucide-react';
 import { Session } from '../../types';
+import { useQuery } from '@tanstack/react-query';
+import { getAvailableSessions } from '../dashboard/sessionApi';
 
 export function Activities() {
-  const { data: sessions, loading, error } = useFetch<Session[]>('/api/sessions');
+  const { data: sessions, isLoading, error } = useQuery({ queryKey: ['sessions'], queryFn: getAvailableSessions });
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader className="animate-spin" />
@@ -25,7 +26,7 @@ export function Activities() {
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          {error}
+          {(error as Error).message || 'Une erreur est survenue.'}
         </div>
       )}
 

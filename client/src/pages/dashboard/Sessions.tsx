@@ -66,10 +66,13 @@ export function Sessions() {
         toast.error("Une erreur inattendue est survenue.");
       }
     },
+    onSuccess: () => {
+      toast.success('Inscription réussie !');
+    },
     // Toujours refaire un fetch à la fin pour s'assurer de la cohérence des données
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      toast.success('Successfully registered for the session!');
+      queryClient.invalidateQueries({ queryKey: ['my-sessions'] }); // Invalider aussi le planning
     }
   });
 

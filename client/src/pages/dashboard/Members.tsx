@@ -3,7 +3,7 @@ import { Card } from '../../components/ui/card';
 import { Loader, ArrowUpDown, Download, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getMembers, getAllMembers, updateMemberRole, deleteMember, Member } from '../../api/memberApi';
+import { getMembers, getAllMembers, updateMemberRole, deleteMember, Member, PaginatedMembersResponse } from '../../api/memberApi';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import Papa from 'papaparse';
@@ -60,7 +60,10 @@ export function Members() {
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['members', page, debouncedSearchTerm, sortConfig],
     queryFn: () => {
-      if (!token) return Promise.resolve([]);
+      if (!token) {
+        // Retourner une structure de données cohérente
+        return Promise.resolve({ members: [], totalPages: 0, currentPage: 1 });
+      }
       return getMembers(token, page, 10, debouncedSearchTerm, sortConfig.key, sortConfig.direction);
     },
     enabled: !!token,
@@ -71,7 +74,7 @@ export function Members() {
   const totalPages = data?.totalPages;
 
   const { mutate: handleRoleChange, isPending: isUpdatingRole, variables: updatingRoleVars } = useMutation<
-    Member, Error, { memberId: number; role: string }, { previousData: any }
+    Member, Error, { memberId: number; role: string }, { previousData: PaginatedMembersResponse | undefined }
   >({
     mutationFn: ({ memberId, role }) => {
       if (!token) throw new Error("Non authentifié");
@@ -79,9 +82,9 @@ export function Members() {
     },
     onMutate: async ({ memberId, role }) => {
       await queryClient.cancelQueries({ queryKey: ['members', page, debouncedSearchTerm, sortConfig] });
-      const previousData = queryClient.getQueryData(['members', page, debouncedSearchTerm, sortConfig]);
+      const previousData = queryClient.getQueryData<PaginatedMembersResponse>(['members', page, debouncedSearchTerm, sortConfig]);
 
-      queryClient.setQueryData(['members', page, debouncedSearchTerm, sortConfig], (oldData: any) => {
+      queryClient.setQueryData<PaginatedMembersResponse | undefined>(['members', page, debouncedSearchTerm, sortConfig], (oldData) => {
         if (!oldData) return oldData;
         return {
           ...oldData,
@@ -104,7 +107,7 @@ export function Members() {
   });
 
   const { mutate: handleDeleteMember, isPending: isDeletingMember } = useMutation<
-    void, Error, number, { previousData: any }
+    void, Error, number, { previousData: PaginatedMembersResponse | undefined }
   >({
     mutationFn: (memberId: number) => {
       if (!token) throw new Error("Non authentifié");
@@ -112,9 +115,9 @@ export function Members() {
     },
     onMutate: async (memberId: number) => {
       await queryClient.cancelQueries({ queryKey: ['members', page, debouncedSearchTerm, sortConfig] });
-      const previousData = queryClient.getQueryData(['members', page, debouncedSearchTerm, sortConfig]);
+      const previousData = queryClient.getQueryData<PaginatedMembersResponse>(['members', page, debouncedSearchTerm, sortConfig]);
 
-      queryClient.setQueryData(['members', page, debouncedSearchTerm, sortConfig], (oldData: any) => {
+      queryClient.setQueryData<PaginatedMembersResponse | undefined>(['members', page, debouncedSearchTerm, sortConfig], (oldData) => {
         if (!oldData) return oldData;
         return {
           ...oldData,
@@ -133,6 +136,9 @@ export function Members() {
       }
       toast.error("Échec de la suppression du membre.");
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+    }
   });
 
   const handleSort = (key: SortConfig['key']) => {
