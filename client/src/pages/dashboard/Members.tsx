@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMembers, getAllMembers, updateMemberRole, deleteMember, Member, PaginatedMembersResponse } from './memberApi';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
+import { ConfirmationDialog } from '../../components/ui/ConfirmationDialog';
 import Papa from 'papaparse';
 import toast from 'react-hot-toast';
 
@@ -15,25 +16,6 @@ type SortConfig = {
 };
 
 const ROLES = ['member', 'coach', 'admin'];
-
-const ConfirmationDialog = ({ title, message, onConfirm, onCancel, isPending }: { title: string, message: string, onConfirm: () => void, onCancel: () => void, isPending: boolean }) => {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <Card className="p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">{title}</h2>
-        <p className="text-gray-600 mb-6">{message}</p>
-        <div className="flex justify-end gap-4">
-          <Button variant="outline" onClick={onCancel} disabled={isPending}>
-            Annuler
-          </Button>
-          <Button variant="destructive" onClick={onConfirm} disabled={isPending}>
-            {isPending ? 'Suppression...' : 'Confirmer'}
-          </Button>
-        </div>
-      </Card>
-    </div>
-  );
-};
 
 export function Members() {
   const { user: currentUser, token } = useAuth();
