@@ -97,7 +97,7 @@ Assurez-vous que l'URL de l'API correspond à celle de votre serveur backend.
 npm run dev
 ```
 
-L'application devrait maintenant être accessible à l'adresse `http://localhost:5173` (ou un autre port si celui-ci est occupé).
+L'application devrait maintenant être accessible à l'adresse `http://localhost:3000` (ou un autre port si celui-ci est occupé).
 
 ## 📁 Structure du Projet
 
