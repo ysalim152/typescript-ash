@@ -3,7 +3,7 @@ import { Card } from '../../components/ui/card';
 import { Loader, ArrowUpDown, Download, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getMembers, getAllMembers, updateMemberRole, deleteMember, Member, PaginatedMembersResponse } from './memberApi';
+import { getMembers, getAllMembers, updateMemberRole, deleteMember, Member, PaginatedMembersResponse } from '../../api/memberApi';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import Papa from 'papaparse';

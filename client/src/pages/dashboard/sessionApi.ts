@@ -1,5 +1,5 @@
 import { Session } from '../types';
-import { HttpError } from './HttpError';
+import { HttpError } from '../../api/HttpError';
 
 /**
  * Fetches all available sessions.

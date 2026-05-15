@@ -1,4 +1,4 @@
-import { HttpError } from "../../api/HttpError";
+import { HttpError } from "./HttpError";
 export interface Activity {
   id: number;
   name: string;
